@@ -2,37 +2,119 @@
   <section class="productos">
     <div class="container">
       <h2 class="section-title">Nuestros Productos</h2>
-      <div class="product-grid">
+      
+      <!-- Estado de carga -->
+      <div v-if="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Cargando productos...</p>
+      </div>
+      
+      <!-- Estado de error -->
+      <div v-else-if="error" class="error">
+        <p>❌ {{ error }}</p>
+        <button @click="fetchProductos" class="retry-btn">Reintentar</button>
+      </div>
+      
+      <!-- Productos -->
+      <div v-else class="product-grid">
         <div 
           v-for="producto in productos" 
           :key="producto.id" 
           class="product-card"
         >
           <div class="product-image">
-            {{ producto.emoji }}
+            {{ getProductEmoji(producto.categoria || producto.nombre) }}
           </div>
           <h3 class="product-name">{{ producto.nombre }}</h3>
           <p class="product-desc">{{ producto.descripcion }}</p>
-          <div class="product-price">${{ producto.precio }}</div>
+          <div class="product-meta">
+            <span class="product-price">${{ producto.precio }}</span>
+            <span v-if="producto.stock !== undefined" 
+                  :class="['product-stock', producto.stock > 0 ? 'in-stock' : 'out-of-stock']">
+              {{ producto.stock > 0 ? `Stock: ${producto.stock}` : 'Agotado' }}
+            </span>
+          </div>
           <button 
             class="add-to-cart"
             @click="$emit('agregar-al-carrito', producto)"
+            :disabled="producto.stock === 0"
+            :class="{ 'disabled': producto.stock === 0 }"
           >
-            🛒 Agregar al Carrito
+            {{ producto.stock === 0 ? '❌ Agotado' : '🛒 Agregar al Carrito' }}
           </button>
         </div>
+      </div>
+      
+      <!-- Mensaje si no hay productos -->
+      <div v-if="!loading && !error && productos.length === 0" class="no-products">
+        <p>No hay productos disponibles en este momento.</p>
       </div>
     </div>
   </section>
 </template>
 
 <script>
+import api from '@/services/api';
+
 export default {
   name: 'ProductList',
-  props: {
-    productos: {
-      type: Array,
-      default: () => []
+  data() {
+    return {
+      productos: [],
+      loading: false,
+      error: null
+    }
+  },
+  async mounted() {
+    await this.fetchProductos();
+  },
+  methods: {
+    async fetchProductos() {
+      this.loading = true;
+      this.error = null;
+      
+      try {
+        const response = await api.get('/products');
+        this.productos = response.data;
+        console.log('Productos cargados:', this.productos);
+      } catch (error) {
+        console.error('Error cargando productos:', error);
+        this.error = this.getErrorMessage(error);
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    getErrorMessage(error) {
+      if (error.response?.status === 404) {
+        return 'No se encontraron productos. Verifica la conexión con el servidor.';
+      } else if (error.response?.status === 500) {
+        return 'Error del servidor. Intenta más tarde.';
+      } else if (error.code === 'NETWORK_ERROR') {
+        return 'Error de conexión. Verifica que el servidor esté ejecutándose.';
+      } else {
+        return 'Error al cargar los productos.';
+      }
+    },
+    
+    getProductEmoji(categoria) {
+      const emojis = {
+        'medicamento': '💊',
+        'vitamina': '🧪',
+        'cuidado': '🧴',
+        'bebe': '👶',
+        'primeros': '🩹',
+        'default': '🛍️'
+      };
+      
+      if (!categoria) return emojis.default;
+      
+      categoria = categoria.toLowerCase();
+      for (const [key, emoji] of Object.entries(emojis)) {
+        if (categoria.includes(key)) return emoji;
+      }
+      
+      return emojis.default;
     }
   }
 }
@@ -41,9 +123,9 @@ export default {
 <style scoped>
 .productos {
   padding: 2rem 0;
-  background: rgba(248, 250, 252, 0.95); /* ← Fondo semitransparente blanco */
+  background: rgba(248, 250, 252, 0.95);
   width: 100%;
-  backdrop-filter: blur(2px); /* ← Efecto de desenfoque sutil */
+  backdrop-filter: blur(2px);
 }
 
 .container {
@@ -59,6 +141,50 @@ export default {
   color: #2c5aa0;
 }
 
+/* Estados de carga y error */
+.loading {
+  text-align: center;
+  padding: 2rem;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2c5aa0;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error {
+  text-align: center;
+  padding: 2rem;
+  color: #e53e3e;
+}
+
+.retry-btn {
+  background: #2c5aa0;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.no-products {
+  text-align: center;
+  padding: 2rem;
+  color: #718096;
+}
+
+/* Grid de productos */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -105,11 +231,30 @@ export default {
   flex-grow: 1;
 }
 
+.product-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
 .product-price {
   font-size: 1.2rem;
   font-weight: bold;
   color: #2c5aa0;
-  margin-bottom: 1rem;
+}
+
+.product-stock {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.in-stock {
+  color: #38a169;
+}
+
+.out-of-stock {
+  color: #e53e3e;
 }
 
 .add-to-cart {
@@ -124,9 +269,15 @@ export default {
   font-size: 0.85rem;
 }
 
-.add-to-cart:hover {
+.add-to-cart:hover:not(.disabled) {
   background: linear-gradient(135deg, #38a169, #2f855a);
   transform: scale(1.02);
+}
+
+.add-to-cart.disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Responsive */
@@ -154,6 +305,11 @@ export default {
   
   .section-title {
     font-size: 1.4rem;
+  }
+  
+  .product-meta {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 }
 </style>
