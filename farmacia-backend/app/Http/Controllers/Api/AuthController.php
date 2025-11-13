@@ -12,80 +12,55 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    /**
-     * Registra un nuevo usuario.
-     */
     public function register(Request $request)
     {
-        // Validación de los campos
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255', // 'name' como en tu formulario de Vue [cite: 36]
-            'email' => 'required|string|email|max:255|unique:users', // 'unique' en la tabla 'usuarios'
-            'password' => 'required|string|min:6|confirmed', // 'confirmed' busca 'password_confirmation'
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:usuarios', // 'unique' en la tabla 'usuarios'
+            'password' => 'required|string|min:6|confirmed',
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
-        // Creamos el usuario
         $user = User::create([
-            'name' => $request->name, // Mapeamos 'name' del form a 'nombre' de la BD [cite: 36, 378]
+            'nombre' => $request->name, // Mapeamos 'name' del form a 'nombre' de la BD
             'email' => $request->email,
-            'password' => Hash::make($request->password), // Hasheamos la contraseña
+            'password' => Hash::make($request->password),
         ]);
 
-        // Iniciar sesión automáticamente
         Auth::login($user);
-
-        return response()->json($user, 201); // 201 = Creado
+        return response()->json($user, 201);
     }
 
-    /**
-     * Inicia sesión (Login).
-     */
     public function login(Request $request)
     {
-        // Validación
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        // Intentar autenticar
         if (!Auth::attempt($request->only('email', 'password'))) {
-            // Si falla, devolvemos error
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales proporcionadas son incorrectas.'],
             ]);
         }
 
-        // Regenerar la sesión
         $request->session()->regenerate();
-
-        // Devolver el usuario autenticado
         return response()->json(Auth::user());
     }
 
-    /**
-     * Obtiene el perfil del usuario autenticado.
-     */
     public function profile()
     {
-        // Auth::user() devuelve el usuario actual (o null si no está logueado)
         return response()->json(Auth::user());
     }
 
-    /**
-     * Cierra la sesión (Logout).
-     */
     public function logout(Request $request)
     {
         Auth::logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
         return response()->json(['message' => 'Sesión cerrada correctamente']);
     }
 }

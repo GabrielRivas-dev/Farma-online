@@ -3,35 +3,29 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable; // <-- Importante para Auth
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable // <-- Debe extender Authenticatable
+class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
     /**
      * La tabla asociada con el modelo.
-     *
-     * @var string
      */
-    protected $table = 'users'; // <-- Conecta con tu tabla 'usuarios' 
+    protected $table = 'usuarios';
 
     /**
      * Los atributos que se pueden asignar masivamente.
-     *
-     * @var array<int, string>
      */
     protected $fillable = [
-        'name', // <-- Tu campo de la BD 
+        'nombre',
         'email',
         'password',
     ];
 
     /**
      * Los atributos que deben ocultarse para la serialización.
-     *
-     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -40,11 +34,9 @@ class User extends Authenticatable // <-- Debe extender Authenticatable
 
     /**
      * Los atributos que deben ser convertidos a tipos nativos.
-     *
-     * @var array<string, string>
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed', // <-- Le dice a Laravel que el password está hasheado
+        'password' => 'hashed', // Le dice a Laravel que el password está hasheado
     ];
 }

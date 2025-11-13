@@ -40,6 +40,12 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // AÑADE ESTE BLOQUE QUE FALTABA
+        'sanctum' => [
+            'driver' => 'sanctum',
+            'provider' => null,
+        ],
     ],
 
     /*

@@ -3,50 +3,76 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Producto;
 use Illuminate\Http\Request;
-use App\Models\Producto; // <-- 1. AÑADE ESTA LÍNEA
+use Illuminate\Support\Facades\Validator;
 
 class ProductoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        // 2. AÑADE ESTAS DOS LÍNEAS:
-        $productos = Producto::all(); // Obtiene todos los productos de la BD
-        return response()->json($productos); // Devuelve los productos como JSON
+        $productos = Producto::with('categoria')->get();
+        return response()->json($productos);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        // (Lo dejaremos vacío por ahora)
+        $validator = Validator::make($request->all(), [
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'required|string',
+            'precio' => 'required|numeric|min:0',
+            'categoria_id' => 'required|integer|exists:categorias,id',
+            'stock' => 'integer|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $producto = Producto::create($request->all());
+        return response()->json($producto, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
-        // (Lo dejaremos vacío por ahora)
+        $producto = Producto::with('categoria')->find($id);
+        if (!$producto) {
+            return response()->json(['message' => 'Producto no encontrado'], 404);
+        }
+        return response()->json($producto);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
-        // (Lo dejaremos vacío por ahora)
+        $producto = Producto::find($id);
+        if (!$producto) {
+            return response()->json(['message' => 'Producto no encontrado'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'nombre' => 'sometimes|string|max:255',
+            'descripcion' => 'sometimes|string',
+            'precio' => 'sometimes|numeric|min:0',
+            'categoria_id' => 'sometimes|integer|exists:categorias,id',
+            'stock' => 'sometimes|integer|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $producto->update($request->all());
+        return response()->json($producto);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
-        // (Lo dejaremos vacío por ahora)
+        $producto = Producto::find($id);
+        if (!$producto) {
+            return response()->json(['message' => 'Producto no encontrado'], 404);
+        }
+
+        $producto->delete();
+        return response()->json(['message' => 'Producto eliminado correctamente']);
     }
 }
