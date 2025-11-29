@@ -16,22 +16,23 @@ class InventoryController extends Controller
     {
         try {
             $productos = Producto::with(['categoria', 'proveedor'])
-                ->stockBajo()
-                ->get();
+            ->where('stock', '<', 10)
+            ->where('activo', true)
+            ->get();
 
-            return response()->json([
-                'success' => true,
-                'data' => $productos,
-                'total' => $productos->count()
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al obtener productos con stock bajo',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'data' => $productos,
+            'total' => $productos->count()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener productos con stock bajo',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
 
     // Obtener estadísticas de inventario
     public function estadisticas()
@@ -39,14 +40,14 @@ class InventoryController extends Controller
     try {
         $stats = [
             'total_productos' => Producto::where('activo', true)->count(),
-            'productos_stock_bajo' => Producto::stockBajo()->count(),
+            'productos_stock_bajo' => Producto::where('stock', '<', 10)->where('activo', true)->count(),
             'productos_sin_stock' => Producto::where('stock', 0)->where('activo', true)->count(),
             'valor_inventario_total' => Producto::where('activo', true)
                 ->get()
                 ->sum(function($producto) {
                     return $producto->stock * $producto->precio;
                 }),
-            'proveedores_activos' => Proveedor::activos()->count()
+            'proveedores_activos' => Proveedor::where('activo', true)->count()
         ];
 
         return response()->json([

@@ -46,7 +46,6 @@
 
           <nav class="main-nav">
             <a href="#" class="nav-link">Inicio</a>
-            <a href="#" class="nav-link">Medicamentos</a>
           </nav>
 
           <div class="cart-icon" @click="$emit('toggle-cart')">

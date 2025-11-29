@@ -38,8 +38,6 @@
               </a>
             </li>
             
-            <li><a href="#"><i class="fas fa-history"></i> Historial</a></li>
-            
             <!-- Panel Administrativo (solo para admins) -->
             <div v-if="currentUser && currentUser.is_admin" class="admin-section">
               <h4 class="sidebar-title admin-title">
@@ -53,13 +51,12 @@
                   </a>
                 </li>
                 <li>
-  
-<li class="sidebar-item">
-  <a href="#" class="sidebar-link admin-link" @click.prevent="showInventoryManagement">
-    <i class="fas fa-boxes"></i>
-    Gestión de Inventario
-  </a>
-</li>          <a href="#" class="sidebar-link admin-link" @click.prevent="showAdminChat">
+                  <a href="#" class="sidebar-link admin-link" @click.prevent="showInventoryManagement">
+                    <i class="fas fa-boxes"></i> Gestión de Inventario
+                  </a>
+                </li>
+                <li>
+                  <a href="#" class="sidebar-link admin-link" @click.prevent="showAdminChat">
                     <i class="fas fa-headset"></i> Gestión de Chat
                   </a>
                 </li>
@@ -68,30 +65,49 @@
           </ul>
         </div>
 
-        <!-- Medicamentos -->
+        <!-- Chaos AI -->
         <div class="sidebar-section">
-          <h4 class="sidebar-title">
-            <i class="fas fa-pills"></i>
-            Medicamentos
+          <h4 class="sidebar-title chaos-title">
+            <i class="fas fa-robot"></i>
+            🤖 Asistente IA
           </h4>
           <ul class="sidebar-menu">
-            <li><a href="#"><i class="fas fa-capsules"></i> Analgésicos</a></li>
-            <li><a href="#"><i class="fas fa-prescription-bottle"></i> Antibióticos</a></li>
-            <li><a href="#"><i class="fas fa-heartbeat"></i> Vitaminas</a></li>
-            <li><a href="#"><i class="fas fa-band-aid"></i> Cuidado Personal</a></li>
+            <li>
+              <a href="#" class="sidebar-link chaos-link" @click.prevent="openChaosAI">
+                <i class="fas fa-comments"></i> 
+                <span>Chat con Chaos AI</span>
+                <span class="status-dot"></span>
+              </a>
+            </li>
           </ul>
         </div>
       </div>
     </aside>
+
+    <!-- Modal Chaos AI -->
+    <ChaosAIModal 
+      v-if="showChaosModal"
+      @close="showChaosModal = false"
+    />
   </div>
 </template>
 
 <script>
+import ChaosAIModal from './ChaosAIModal.vue'
+
 export default {
   name: 'Sidebar',
+  components: {
+    ChaosAIModal
+  },
   props: {
     active: Boolean,
     currentUser: Object
+  },
+  data() {
+    return {
+      showChaosModal: false
+    }
   },
   methods: {
     // NUEVO MÉTODO: MI PERFIL
@@ -121,16 +137,22 @@ export default {
       console.log('✅ Nueva pestaña abierta y sidebar cerrado')
     },
     
-  showInventoryManagement() {
-  console.log('🟡 CLIC EN Gestión de Inventario - Emitiendo evento');
-  this.$emit('show-inventory-management');
-  this.$emit('close');
-},
+    showInventoryManagement() {
+      console.log('🟡 CLIC EN Gestión de Inventario - Emitiendo evento');
+      this.$emit('show-inventory-management');
+      this.$emit('close');
+    },
 
     // NUEVO MÉTODO: GESTIÓN DE CHAT
     showAdminChat() {
       console.log('📞 Sidebar: Abriendo gestión de chat')
       this.$emit('show-admin-chat')
+      this.$emit('close')
+    },
+
+    // Chaos AI
+    openChaosAI() {
+      this.showChaosModal = true
       this.$emit('close')
     }
   }
@@ -346,6 +368,38 @@ export default {
 /* Animación especial para el engranaje admin */
 .admin-link:hover i.fa-cog {
   animation: rotateCog 0.6s ease, pulseGold 0.6s ease;
+}
+
+/* ========================= */
+/* ESTILOS CHAOS AI */
+/* ========================= */
+
+.chaos-title {
+  color: #1e88e5 !important;
+}
+
+.chaos-link {
+  background: linear-gradient(135deg, rgba(30, 136, 229, 0.1), rgba(13, 71, 161, 0.05)) !important;
+  border-left: 3px solid #1e88e5 !important;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: #4caf50;
+  border-radius: 50%;
+  margin-left: auto;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.chaos-link:hover {
+  background: linear-gradient(135deg, rgba(30, 136, 229, 0.15), rgba(13, 71, 161, 0.1)) !important;
 }
 
 @media (max-width: 480px) {

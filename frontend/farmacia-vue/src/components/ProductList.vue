@@ -1,14 +1,32 @@
 <template>
   <section class="products-section">
     <div class="container">
-      <h2 class="section-title">Nuestros Productos</h2>
+      <!-- ENCABEZADO CON CONTADOR DINÁMICO -->
+      <div class="section-header">
+        <h2 class="section-title">
+          {{ showAllProducts ? 'Todos Nuestros Productos' : 'Productos Destacados' }}
+          <span class="product-count">({{ displayedCount }})</span>
+        </h2>
+        
+        <!-- BOTÓN VER MENOS (solo aparece cuando se muestran todos) -->
+        <button 
+          v-if="showAllProducts" 
+          class="view-less-btn"
+          @click="$emit('show-limited-products')"
+        >
+          <i class="fas fa-times"></i>
+          Ver Menos Productos
+        </button>
+      </div>
+
+      <!-- GRILLA DE PRODUCTOS -->
       <div class="products-grid">
         <div 
           class="product-card" 
           v-for="product in products" 
           :key="product.id"
         >
-          <!-- CORAZÓN -->
+          <!-- CORAZÓN DE FAVORITOS -->
           <button 
             class="favorite-btn" 
             :class="{ active: isFavorite(product.id) }"
@@ -21,29 +39,38 @@
           <div class="product-image-container">
             <img :src="product.image" :alt="product.name" class="product-image">
           </div>
+          
           <div class="product-info">
             <h3 class="product-name">{{ product.name }}</h3>
             <p class="product-description">{{ product.description }}</p>
+            
             <div class="product-price-section">
               <span class="product-price">${{ product.price }}</span>
+              
               <div class="product-actions">
                 <!-- BOTÓN AGREGAR AL CARRITO -->
                 <button class="add-to-cart" @click="$emit('add-to-cart', product)">
-                  Agregar al Carrito
+                  <i class="fas fa-cart-plus"></i>
+                  Agregar
                 </button>
-                <!-- NUEVO BOTÓN ESCRIBIR RESEÑA -->
+                
+                <!-- BOTÓN ESCRIBIR RESEÑA -->
                 <button 
-  class="write-review" 
-  @click="$emit('write-review', product)"
-  title="Escribir reseña"
-  style="background: linear-gradient(135deg, #42a5f5, #1976d2) !important; color: white !important; padding: 8px 12px !important; border-radius: 6px !important; font-weight: 600 !important; border: none !important; box-shadow: 0 2px 6px rgba(66,165,245,0.3) !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important; font-size: 0.85rem !important;"
->
-  <i class="fas fa-star" style="font-size: 0.8rem !important;"></i> Reseñar
-</button>
+                  class="write-review" 
+                  @click="$emit('write-review', product)"
+                  title="Escribir reseña"
+                >
+                  <i class="fas fa-star"></i> Reseñar
+                </button>
               </div>
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- MENSAJE CUANDO NO HAY PRODUCTOS -->
+      <div v-if="products.length === 0" class="no-products">
+        <p>No se encontraron productos.</p>
       </div>
     </div>
   </section>
@@ -54,13 +81,12 @@ export default {
   name: 'ProductList',
   props: {
     products: Array,
-    favoriteProducts: Array // ← AGREGAR ESTE PROP
+    favoriteProducts: Array,
+    showAllProducts: Boolean,
+    totalProducts: Number,
+    displayedCount: Number // ✅ NUEVO PROP PARA EL CONTADOR
   },
   methods: {
-    // Verificar si el usuario ya reseñó este producto
-hasUserReviewed(productId) {
-  return this.userReviews?.some(review => review.producto_id === productId) || false;
-},
     toggleFavorite(product) {
       this.$emit('toggle-favorite', product);
     },
@@ -85,14 +111,59 @@ hasUserReviewed(productId) {
   padding: 0 20px;
 }
 
-.section-title {
-  text-align: center;
-  font-size: 2rem;
-  color: #2c3e50;
+/* ENCABEZADO CON CONTADOR */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 30px;
-  font-weight: 700;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
+.section-title {
+  font-size: 2rem;
+  color: #2c3e50;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.product-count {
+  font-size: 1rem;
+  color: #666;
+  font-weight: normal;
+  background: #e3f2fd;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid #bbdefb;
+}
+
+/* BOTÓN VER MENOS */
+.view-less-btn {
+  background: linear-gradient(135deg, #666, #444);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.view-less-btn:hover {
+  background: linear-gradient(135deg, #555, #333);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* GRILLA DE PRODUCTOS */
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -158,22 +229,6 @@ hasUserReviewed(productId) {
   color: #e91e63;
 }
 
-/* BADGE MÁS CORTO - ESQUINA IZQUIERDA */
-.product-badge {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  background: #4caf50;
-  color: white;
-  padding: 3px 8px; /* Más compacto */
-  border-radius: 12px; /* Más redondeado */
-  font-size: 0.7rem; /* Texto más pequeño */
-  font-weight: 600;
-  text-transform: uppercase;
-  z-index: 5;
-  white-space: nowrap; /* Evita que se rompa en varias líneas */
-}
-
 .product-image-container {
   position: relative;
   width: 100%;
@@ -204,7 +259,7 @@ hasUserReviewed(productId) {
   line-height: 1.3;
 }
 
-/* DESCRIPCIÓN SIN WARNING */
+/* DESCRIPCIÓN CORREGIDA - SIN WARNINGS */
 .product-description {
   color: #6c757d;
   font-size: 0.9rem;
@@ -215,13 +270,14 @@ hasUserReviewed(productId) {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  line-clamp: 2; /* Elimina el warning */
+  line-clamp: 2;
+  max-height: 2.8em;
 }
 
 .product-price-section {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .product-price {
@@ -230,7 +286,15 @@ hasUserReviewed(productId) {
   color: #1e88e5;
 }
 
-/* BOTÓN AZUL */
+/* ACCIONES DE PRODUCTO */
+.product-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* BOTÓN AGREGAR AL CARRITO */
 .add-to-cart {
   background: linear-gradient(135deg, #1e88e5, #1565c0);
   color: white;
@@ -241,6 +305,11 @@ hasUserReviewed(productId) {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(30,136,229,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
 }
 
 .add-to-cart:hover {
@@ -248,36 +317,9 @@ hasUserReviewed(productId) {
   box-shadow: 0 4px 12px rgba(30,136,229,0.4);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .products-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-  }
-  
-  .section-title {
-    font-size: 1.6rem;
-  }
-  
-  .product-price-section {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-  }
-  
-  .add-to-cart {
-    width: 100%;
-  }
-  /* NUEVOS ESTILOS PARA LOS BOTONES */
-.product-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-}
-
+/* BOTÓN ESCRIBIR RESEÑA */
 .write-review {
-  background: linear-gradient(135deg, #4caf50, #45a049);
+  background: linear-gradient(135deg, #42a5f5, #1976d2);
   color: white;
   border: none;
   padding: 10px 16px;
@@ -285,28 +327,27 @@ hasUserReviewed(productId) {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(76,175,80,0.3);
+  box-shadow: 0 2px 8px rgba(66,165,245,0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-size: 0.95rem;
+  width: 100%;
   position: relative;
   overflow: hidden;
-  border: 1px solid #43a047;
 }
 
 .write-review:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(76,175,80,0.4);
-  background: linear-gradient(135deg, #45a049, #388e3c);
+  box-shadow: 0 4px 15px rgba(66,165,245,0.4);
+  background: linear-gradient(135deg, #1976d2, #1565c0);
 }
 
 .write-review:active {
   transform: translateY(0);
 }
 
-/* Efecto médico - línea pulsante */
+/* Efecto de línea pulsante */
 .write-review::after {
   content: '';
   position: absolute;
@@ -314,7 +355,7 @@ hasUserReviewed(productId) {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #ffffff, #e8f5e8, #ffffff);
+  background: linear-gradient(90deg, #ffffff, #e3f2fd, #ffffff);
   animation: pulseLine 2s infinite;
 }
 
@@ -325,20 +366,47 @@ hasUserReviewed(productId) {
 
 .write-review i {
   font-size: 1rem;
-  color: #e8f5e8;
+  color: #e3f2fd;
 }
 
-/* Para que los botones queden igual de anchos */
-.product-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
+/* MENSAJE SIN PRODUCTOS */
+.no-products {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 1.1rem;
 }
 
-.add-to-cart, .write-review {
-  width: 100%;
-}
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  
+  .products-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  
+  .section-title {
+    font-size: 1.6rem;
+  }
+  
+  .view-less-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
+@media (max-width: 480px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .product-card {
+    padding: 15px;
+  }
+}
 </style>

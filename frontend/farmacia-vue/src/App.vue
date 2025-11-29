@@ -25,6 +25,7 @@
       @show-admin-chat="showAdminChatManagementModal"
       @show-inventory-management="showInventoryManagement"
       @show-admin-dashboard="showAdminDashboard"
+      @filter-category="filterByCategory" 
     />
 
     <!-- Carousel de Promociones -->
@@ -43,16 +44,21 @@
     <!-- Contenido Principal - SOLO en ruta principal -->
     <main class="main-content" v-if="$route.path === '/'">
       <!-- Banner Hero -->
-      <HeroBanner />
+      <HeroBanner @show-all-products="showAllProductsHandler" />
 
       <!-- Sección de Productos -->
       <ProductList 
-        :products="filteredProducts"
+        :products="displayedProducts"
         :favorite-products="favoriteProducts"
+        :show-all-products="showAllProducts"
+        :total-products="products.length"
+        :displayed-count="displayedProducts.length"
         @add-to-cart="addToCart"
         @toggle-favorite="toggleFavorite"
         :user-reviews="userReviews"
         @write-review="showAddReview"
+        @show-all-products="showAllProductsHandler"
+        @show-limited-products="showLimitedProducts"
       />
     </main>
 
@@ -239,6 +245,7 @@ import AdvancedReports from './components/AdvancedReports.vue';
 import ForgotPasswordModal from './components/ForgotPasswordModal.vue';
 import ResetPasswordModal from './components/ResetPasswordModal.vue';
 import InventoryManagement from './components/InventoryManagement.vue';
+import ChaosAIModal from './components/ChaosAIModal.vue'
 
 // ✅ IMPORTAR SERVICIOS REALES
 import { authService } from './services/authService'
@@ -277,6 +284,7 @@ export default {
     ForgotPasswordModal,
     ResetPasswordModal,
     InventoryManagement,
+    ChaosAIModal,
     ReportsDashboard
   },
   data() {
@@ -320,6 +328,10 @@ export default {
     carouselInterval: null,
     currentUser: null,
     
+    // ✅ NUEVAS VARIABLES PARA CONTROL DE PRODUCTOS
+    showAllProducts: false, // Controla si mostrar todos o solo 15
+    displayedProducts: [], // Productos que se muestran actualmente
+    
     // ✅ DATOS PARA RECUPERACIÓN DE CONTRASEÑA
     resetPasswordData: {
       token: '',
@@ -328,13 +340,17 @@ export default {
     
     // ✅ PRODUCTOS VACÍOS - SE CARGARÁN DESDE EL BACKEND
     products: [],
-    filteredProducts: [],
-    cartItems: [],
     
     // ✅ PROMOCIONES VACÍAS - SE CARGARÁN DESDE EL BACKEND
-    promotions: []
+    promotions: [],
+    cartItems: []
   }
 },
+  computed: {
+    cartTotal() {
+      return this.cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    }
+  },
   async mounted() {
   console.log('🚀 App montada - Cargando datos...');
   
@@ -360,6 +376,28 @@ export default {
   console.log('✅ App completamente cargada');
 },
   methods: {
+    // ✅ NUEVO: Método para mostrar todos los productos
+    showAllProductsHandler() {
+      this.showAllProducts = true;
+      this.displayedProducts = this.products; // Mostrar todos los productos
+      console.log('📦 Mostrando todos los productos:', this.displayedProducts.length);
+      
+      // Hacer scroll suave hacia la sección de productos
+      this.$nextTick(() => {
+        const productsSection = document.querySelector('.products-section');
+        if (productsSection) {
+          productsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    },
+
+    // ✅ NUEVO: Método para mostrar solo 15 productos
+    showLimitedProducts() {
+      this.showAllProducts = false;
+      this.displayedProducts = this.products.slice(0, 15); // Mostrar solo 15
+      console.log('📦 Mostrando productos limitados:', this.displayedProducts.length);
+    },
+
     showAdminChatManagementModal() {
       this.showAdminChatManagement = true;
     },
@@ -504,16 +542,17 @@ export default {
           description: product.descripcion,
           price: parseFloat(product.precio),
           image: product.imagen,
-          category: product.categoria?.slug || 'general',
-          badge: product.badge
+          category: product.categoria?.slug || 'general'
+          // ✅ QUITAMOS EL BADGE
         }));
         
-        this.filteredProducts = [...this.products];
-        console.log(`✅ ${this.products.length} productos cargados`);
+        // ✅ INICIALMENTE MOSTRAR SOLO 15 PRODUCTOS
+        this.displayedProducts = this.products.slice(0, 15);
+        console.log(`✅ ${this.products.length} productos cargados, mostrando ${this.displayedProducts.length}`);
       } catch (error) {
         console.error('❌ Error cargando productos:', error);
         this.products = this.getBackupProducts();
-        this.filteredProducts = [...this.products];
+        this.displayedProducts = this.products.slice(0, 15);
         console.log('🔄 Usando datos de respaldo');
       }
     },
@@ -642,8 +681,7 @@ export default {
           description: 'Hidratación suave para la piel del bebé',
           price: 8.50,
           image: 'https://via.placeholder.com/300x200/FFE0B2/white?text=Aceite+Bebé',
-          category: 'aseo-personal',
-          badge: 'Esencial'
+          category: 'aseo-personal'
         },
         {
           id: 2,
@@ -651,8 +689,7 @@ export default {
           description: 'Alivia el dolor y reduce la fiebre',
           price: 5.50,
           image: 'https://via.placeholder.com/300x200/FFEBEE/333?text=Paracetamol',
-          category: 'medicamentos',
-          badge: 'Más Vendido'
+          category: 'medicamentos'
         },
         {
           id: 3,
@@ -660,8 +697,7 @@ export default {
           description: 'Protección alta contra rayos UV',
           price: 18.50,
           image: 'https://via.placeholder.com/300x200/FFF9C4/333?text=Protector+Solar',
-          category: 'cuidado-piel',
-          badge: 'Nuevo'
+          category: 'cuidado-piel'
         },
         {
           id: 4,
@@ -677,8 +713,7 @@ export default {
           description: 'Antiséptico para limpieza de heridas',
           price: 4.20,
           image: 'https://via.placeholder.com/300x200/E8F5E8/333?text=Alcohol+Etílico',
-          category: 'primeros-auxilios',
-          badge: 'Esencial'
+          category: 'primeros-auxilios'
         }
       ];
     },
@@ -739,13 +774,25 @@ export default {
     },
     
     filterProducts() {
-      this.filteredProducts = this.products.filter(product => {
+      let filtered = this.products.filter(product => {
         const matchesSearch = product.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
                             product.description.toLowerCase().includes(this.searchQuery.toLowerCase());
         const matchesCategory = !this.selectedCategory || product.category === this.selectedCategory;
         
         return matchesSearch && matchesCategory;
       });
+      
+      // ✅ APLICAR LIMITACIÓN SI NO SE MUESTRAN TODOS
+      if (!this.showAllProducts) {
+        filtered = filtered.slice(0, 15);
+      }
+      
+      this.displayedProducts = filtered;
+    },
+    
+    filterByCategory(category) {
+      this.selectedCategory = category;
+      this.filterProducts();
     },
     
     // ✅ AGREGAR AL CARRITO

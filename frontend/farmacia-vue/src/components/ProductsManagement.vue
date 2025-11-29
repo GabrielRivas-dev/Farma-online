@@ -187,6 +187,41 @@
               </select>
             </div>
 
+            <!-- CAMPO DE IMAGEN CON SUBIDA -->
+            <div class="form-group">
+              <label>Imagen del Producto</label>
+              
+              <!-- Opción 1: Subir archivo -->
+              <div class="upload-section">
+                <label class="upload-btn">
+                  <i class="fas fa-upload"></i> Subir imagen
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    @change="handleFileUpload"
+                    style="display: none;"
+                  >
+                </label>
+                <span class="upload-text" v-if="uploadedFileName">
+                  {{ uploadedFileName }}
+                </span>
+              </div>
+
+              <!-- Opción 2: URL externa -->
+              <div class="url-section">
+                <label>O usar URL:</label>
+                <input 
+                  v-model="productForm.imagen" 
+                  type="url" 
+                  placeholder="https://ejemplo.com/imagen.jpg"
+                  class="form-input"
+                >
+                <small class="form-help">
+                  Puedes usar: https://via.placeholder.com/300x200/COLOR/TEXTO
+                </small>
+              </div>
+            </div>
+
             <div class="form-actions">
               <button type="button" class="btn-secondary" @click="closeProductModal">
                 Cancelar
@@ -252,6 +287,7 @@ export default {
       showDeleteModal: false,
       editingProduct: null,
       productToDelete: null,
+      uploadedFileName: '',
       
       productForm: {
         nombre: '',
@@ -313,7 +349,25 @@ export default {
     editProduct(product) {
       this.editingProduct = product
       this.productForm = { ...product }
+      this.uploadedFileName = ''
       this.showProductModal = true
+    },
+
+    // NUEVO: Manejar subida de archivos
+    handleFileUpload(event) {
+      const file = event.target.files[0]
+      if (file) {
+        this.uploadedFileName = file.name
+        
+        // Convertir archivo a Base64 para enviar al backend
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          // Por ahora, usamos Base64 directamente
+          // En producción, deberías subir el archivo a un servidor
+          this.productForm.imagen = e.target.result
+        }
+        reader.readAsDataURL(file)
+      }
     },
 
     async saveProduct() {
@@ -388,6 +442,7 @@ export default {
         imagen: '',
         activo: true
       }
+      this.uploadedFileName = ''
     },
 
     closeProductModal() {
@@ -801,5 +856,69 @@ export default {
   .product-actions {
     justify-content: center;
   }
+  /* Estilos para el campo de imagen */
+.image-help {
+  margin-top: 8px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.image-help code {
+  background: #e9ecef;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+
+.image-examples {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.image-examples span {
+  font-weight: 600;
+  color: #495057;
+}
+
+.example-btn {
+  background: #e3f2fd;
+  border: 1px solid #1e88e5;
+  color: #1e88e5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.example-btn:hover {
+  background: #1e88e5;
+  color: white;
+}
+
+.image-preview {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.image-preview img {
+  max-width: 150px;
+  max-height: 100px;
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+}
+
+.image-error {
+  color: #dc3545;
+  padding: 10px;
+  background: #f8d7da;
+  border-radius: 4px;
+  text-align: center;
+}
 }
 </style>
