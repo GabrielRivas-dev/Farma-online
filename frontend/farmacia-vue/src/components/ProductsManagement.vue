@@ -1021,6 +1021,9 @@ export default {
           formData.append('imagen_url', this.productForm.imagen_url.trim());
         } else if (this.selectedFile) {
           formData.append('imagen', this.selectedFile);
+        } else if (this.editingProduct && !this.imagePreview) {
+             // Si editamos y no hay preview ni archivo seleccionado, significa que se eliminó la imagen
+             formData.append('remove_image', 'true');
         }
         
         if (this.editingProduct) {
@@ -2358,13 +2361,20 @@ export default {
 }
 
 .image-preview-container {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: relative;
+  width: 100%;
+  padding: 10px;
+  background: #fff;
+  border-radius: 12px;
 }
 
 .image-preview {
   max-width: 100%;
-  max-height: 200px;
+  max-height: 250px;
+  object-fit: contain;
   border-radius: 10px;
   border: 3px solid #e2e8f0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);

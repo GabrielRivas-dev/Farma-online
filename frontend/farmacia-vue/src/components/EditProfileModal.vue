@@ -19,6 +19,7 @@
               v-model="formData.name"
               placeholder="Ingresa tu nombre completo"
               required
+              @input="sanitizeName"
             >
           </div>
 
@@ -43,6 +44,7 @@
               id="telefono"
               v-model="formData.telefono"
               placeholder="Ej: +57 300 123 4567"
+              @input="formData.telefono = formData.telefono.replace(/[^0-9]/g, '')"
             >
           </div>
 
@@ -54,6 +56,7 @@
               v-model="formData.direccion"
               placeholder="Ingresa tu dirección completa"
               rows="3"
+              @input="sanitizeAddress"
             ></textarea>
           </div>
 
@@ -116,6 +119,13 @@ export default {
       }
     },
     
+    sanitizeName() {
+      this.formData.name = this.formData.name.replace(/[0-9#$%\&/()=¿?¡!.'{}\[\]\-_:,;+*¨<>\\^`"@]/g, '');
+    },
+    sanitizeAddress() {
+      this.formData.direccion = this.formData.direccion.replace(/[^a-zA-Z0-9\s.,#\/-]/g, '');
+    },
+
     async updateProfile() {
       this.loading = true
       this.error = ''
