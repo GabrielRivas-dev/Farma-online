@@ -54,6 +54,7 @@
         :show-all-products="showAllProducts"
         :total-products="products.length"
         :displayed-count="displayedProducts.length"
+        @filter-category="handleCategoryFilter"
         @add-to-cart="addToCart"
         @toggle-favorite="toggleFavorite"
         :user-reviews="userReviews"

@@ -100,8 +100,8 @@ export default {
 }
 
 .cart-header {
-  background: linear-gradient(135deg, #2c5aa0, #1e3a8a);
-  color: white;
+  background: linear-gradient(135deg, #2b6ed1, #1e3a8a);
+  
   padding: 1.5rem;
   display: flex;
   justify-content: space-between;
@@ -111,6 +111,7 @@ export default {
 .cart-header h2 {
   margin: 0;
   font-size: 1.3rem;
+  color: white;
 }
 
 .close-btn {

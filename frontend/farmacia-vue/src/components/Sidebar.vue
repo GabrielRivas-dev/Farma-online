@@ -160,218 +160,152 @@ export default {
 </script>
 
 <style scoped>
+
+/* =========================
+   1. OVERLAY ULTRA LIGERO
+========================= */
+
 .sidebar-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 998;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 2000;
+
+  opacity: 0;
+  pointer-events: none;
+
+  transition: opacity 0.25s ease;
 }
+
+/* Activación */
+.sidebar-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+
+/* =========================
+   2. SIDEBAR GPU SAFE
+========================= */
 
 .sidebar {
   position: fixed;
   top: 0;
-  left: -300px;
-  width: 300px;
+  left: 0;
+  width: 320px;
   height: 100%;
-  background: white;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  transition: left 0.3s ease;
-  z-index: 999;
+  background: #fff;
+  z-index: 2001;
+
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
+
+  /* 🔥 Solo transform (sin translateZ extra) */
+  transform: translateX(-100%);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 🔥 Solo lo usamos cuando está activo */
 }
 
 .sidebar.active {
-  left: 0;
+  transform: translateX(0);
+  will-change: transform;
 }
 
+
+/* =========================
+   3. HEADER
+========================= */
+
 .sidebar-header {
-  background: linear-gradient(135deg, #2c5aa0, #1e3a8a);
-  color: white;
   padding: 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.sidebar-header h3 {
-  margin: 0;
-  font-size: 1.2rem;
-}
+
+/* =========================
+   4. BOTÓN CERRAR
+========================= */
 
 .close-sidebar {
-  background: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   border: none;
-  color: white;
-  font-size: 1.2rem;
+  background: #f1f5f9;
   cursor: pointer;
-  padding: 0.5rem;
-}
 
-.sidebar-content {
-  padding: 1rem 0;
-}
-
-.sidebar-section {
-  margin-bottom: 1.5rem;
-}
-
-.sidebar-title {
-  padding: 0.75rem 1.5rem;
-  margin: 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #4a5568;
-  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.close-sidebar i {
+  color: #475569;
+  font-size: 1.2rem;
 }
 
-.sidebar-menu {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.close-sidebar:hover {
+  background: #fee2e2;
+  transform: rotate(90deg);
 }
 
-.sidebar-menu li {
-  border-bottom: 1px solid #f7fafc;
-}
 
-.sidebar-menu a,
+/* =========================
+   5. LINKS OPTIMIZADOS
+========================= */
+
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  color: #4a5568;
+  gap: 1rem;
+  padding: 0.85rem 1.5rem;
   text-decoration: none;
-  transition: all 0.3s ease;
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transform: translateX(0);
+  color: #475569;
+  font-weight: 500;
+
+  transition: transform 0.18s ease, background 0.18s ease;
 }
 
-/* ✅ ANIMACIÓN AGREGADA */
-.sidebar-menu a:hover,
 .sidebar-link:hover {
-  background: #f7fafc;
-  color: #2c5aa0;
-  transform: translateX(5px);
-}
-
-/* ✅ ANIMACIÓN ESPECÍFICA PARA EL ENGRANAJE */
-.sidebar-link:hover i.fa-cog {
-  animation: rotateCog 0.6s ease;
-}
-
-@keyframes rotateCog {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(90deg);
-  }
-}
-
-.sidebar-menu i {
-  width: 20px;
-  text-align: center;
-}
-
-/* ========================= */
-/* ESTILOS DORADOS PARA ADMIN */
-/* ========================= */
-
-.admin-section {
-  border-top: 2px solid #f7fafc;
-  border-bottom: 2px solid #f7fafc;
-  margin: 15px 0;
-  padding: 10px 0;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05), rgba(255, 193, 7, 0.02));
-  border-radius: 8px;
-}
-
-.admin-title {
-  color: #4a5568 !important;
-  font-weight: 700 !important;
-  border-bottom: 1px solid #f7fafc !important;
-}
-
-.admin-title i {
-  color: #1e88e5 !important;
-}
-
-/* Items del administrador en dorado */
-.admin-link {
-  color: #4a5568 !important; /* Dorado más elegante */
-  font-weight: 600;
-  position: relative;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05), transparent) !important;
-}
-
-.admin-link i {
-  color: #1e88e5 !important; /* Íconos en dorado brillante */
-}
-
-/* Efectos hover para items admin */
-.admin-link:hover {
-  transform: translateX(5px);
+  background: #eff6ff;
+  transform: translateX(6px);
 }
 
 
-/* Animación especial para el engranaje admin */
-.admin-link:hover i.fa-cog {
-  animation: rotateCog 0.6s ease, pulseGold 0.6s ease;
-}
-
-/* ========================= */
-/* ESTILOS CHAOS AI */
-/* ========================= */
-
-.chaos-title {
-  color: #1e88e5 !important;
-}
-
-.chaos-link {
-  background: linear-gradient(135deg, rgba(30, 136, 229, 0.1), rgba(13, 71, 161, 0.05)) !important;
-  border-left: 3px solid #1e88e5 !important;
-}
+/* =========================
+   6. STATUS DOT LIGERO
+========================= */
 
 .status-dot {
   width: 8px;
   height: 8px;
-  background: #4caf50;
+  background: #22c55e;
   border-radius: 50%;
   margin-left: auto;
-  animation: pulse 2s infinite;
+
+  animation: pulse-light 2s infinite;
 }
 
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
+@keyframes pulse-light {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
-.chaos-link:hover {
-  background: linear-gradient(135deg, rgba(30, 136, 229, 0.15), rgba(13, 71, 161, 0.1)) !important;
-}
+
+/* =========================
+   7. MOBILE
+========================= */
 
 @media (max-width: 480px) {
   .sidebar {
     width: 280px;
   }
-  
-  .admin-section {
-    margin: 10px 0;
-    padding: 8px 0;
-  }
 }
+
 </style>

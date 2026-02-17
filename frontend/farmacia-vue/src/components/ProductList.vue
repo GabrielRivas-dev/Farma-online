@@ -7,17 +7,28 @@
           {{ showAllProducts ? 'Todos Nuestros Productos' : 'Productos Destacados' }}
           <span class="product-count">({{ displayedCount }})</span>
         </h2>
-        
-        <!-- BOTÓN VER MENOS (solo aparece cuando se muestran todos) -->
+
+      <div class="filters-section">
+          <span class="filters-label">Filtros</span>
+          <select class="filter-select" v-model="categoriaLocal" @change="$emit('filter-category', categoriaLocal)">
+            <option value="">Todas las categorías</option>
+            <option value="aseo-personal">Aseo Personal</option>
+            <option value="analgesicos">Analgésicos</option> <option value="antigripales">Antigripales</option>
+            <option value="vitaminas">Vitaminas</option>
+            <option value="primeros-auxilios">Primeros Auxilios</option>
+            <option value="equipamiento">Equipamiento</option>
+          </select>
+        </div>
+
         <button 
           v-if="showAllProducts" 
           class="view-less-btn"
           @click="$emit('show-limited-products')"
         >
-          <i class="fas fa-times"></i>
-          Ver Menos Productos
+          <i class="fas fa-times"></i> Ver Menos Productos
         </button>
       </div>
+    
 
       <!-- GRILLA DE PRODUCTOS -->
       <div class="products-grid">
@@ -80,18 +91,47 @@
 export default {
   name: 'ProductList',
   props: {
-    products: Array,
-    favoriteProducts: Array,
-    showAllProducts: Boolean,
-    totalProducts: Number,
-    displayedCount: Number // ✅ NUEVO PROP PARA EL CONTADOR
+    products: {
+      type: Array,
+      required: true
+    },
+    favoriteProducts: {
+      type: Array,
+      default: () => []
+    },
+    showAllProducts: {
+      type: Boolean,
+      default: false
+    },
+    totalProducts: {
+      type: Number,
+      default: 0
+    },
+    displayedCount: {
+      type: Number,
+      default: 0
+    },
+    selectedCategory: {  // ← Prop para el filtro
+      type: String,
+      default: ''
+    }
+  },
+  // ⚠️ IMPORTANTE: NO declarar selectedCategory en data()
+  data() {
+    return {
+      searchQuery: '',  // ← Solo searchQuery, NO selectedCategory
+      categoriaLocal: ''
+    }
   },
   methods: {
+    emitirFiltro() {
+    console.log("1. Hijo: Categoría seleccionada en select:", this.categoriaLocal);
+    this.$emit('filter-category', this.categoriaLocal);
+  },
     toggleFavorite(product) {
       this.$emit('toggle-favorite', product);
     },
     
-    // Método para verificar si es favorito
     isFavorite(productId) {
       return this.favoriteProducts?.includes(productId) || false;
     }
@@ -116,7 +156,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 15px;
 }
@@ -164,217 +204,273 @@ export default {
 }
 
 /* GRILLA DE PRODUCTOS */
+/* Estilos generales para el contenedor de productos */
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 25px;
-  padding: 20px 0;
+  padding: 20px;
 }
 
+/* Card principal - Estilo mejorado */
 .product-card {
-  background: white;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
   position: relative;
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
 }
 
 .product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(30, 58, 138, 0.08);
+  border-color: #dbeafe;
 }
 
-/* CORAZÓN - ESQUINA DERECHA */
+/* Botón de favoritos mejorado */
 .favorite-btn {
   position: absolute;
   top: 12px;
   right: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  background: white;
+  border: none;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  color: #ff4757;
+  font-size: 1.2rem;
 }
 
 .favorite-btn:hover {
-  background: white;
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transform: scale(1.15);
+  background: #ff4757;
+  color: white;
+  box-shadow: 0 6px 15px rgba(255, 71, 87, 0.4);
 }
 
-.favorite-btn i {
-  color: #ccc;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
+.favorite-btn.active {
+  background: #ff4757;
+  color: white;
+  animation: heartbeat 1.5s ease infinite;
 }
 
-/* CORAZÓN ACTIVO (ROJO) */
-.favorite-btn.active i {
-  color: #ff4081;
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  14% { transform: scale(1.1); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  70% { transform: scale(1); }
 }
 
-.favorite-btn:hover i {
-  color: #ff4081;
-}
-
-.favorite-btn.active:hover i {
-  color: #e91e63;
-}
-
+/* Contenedor de imagen mejorado */
 .product-image-container {
-  position: relative;
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
+  height: 240px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .product-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
   transition: transform 0.3s ease;
 }
 
 .product-card:hover .product-image {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
+
+/* Información del producto */
 .product-info {
-  padding: 20px;
-}
-
-.product-name {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 8px;
-  line-height: 1.3;
-}
-
-/* DESCRIPCIÓN CORREGIDA - SIN WARNINGS */
-.product-description {
-  color: #6c757d;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin-bottom: 15px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  line-clamp: 2;
-  max-height: 2.8em;
-}
-
-.product-price-section {
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
+  flex: 1;
+  background-color: white;
+}
+
+
+.product-name {
+ font-size: 1.1rem;
+  font-weight: 600;
+  color: #111111;
+  line-height: 1.4; 
+  margin: 0 0 10px 0;
+  transition: color 0.3s ease;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.product-card:hover .product-name {
+  color: #3498db;
+}
+
+.product-description {
+  font-size: 0.88rem;
+   color: #6b7280;
+  line-height: 1.4;
+  margin: 0 0 15px 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+/* Sección de precios y acciones */
+.product-price-section {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
 }
 
 .product-price {
-  font-size: 1.4rem;
+  font-size: 2rem;
   font-weight: 700;
-  color: #1e88e5;
+  color: #16a34a;
 }
 
-/* ACCIONES DE PRODUCTO */
+.product-price::before {
+  font-size: 1rem;
+  margin-right: 4px;
+  color: #94a3b8;
+}
+
+/* Contenedor de acciones */
 .product-actions {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
+  gap: 10px;
 }
 
-/* BOTÓN AGREGAR AL CARRITO */
+/* Botón agregar al carrito mejorado */
 .add-to-cart {
-  background: linear-gradient(135deg, #1e88e5, #1565c0);
+  flex: 2;
+  padding: 11px;
+  background: #1e3a8a;
   color: white;
   border: none;
-  padding: 10px 16px;
   border-radius: 8px;
+  font-size: 0.9rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(30,136,229,0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
+  transition: all 0.25s ease;
 }
 
 .add-to-cart:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(30,136,229,0.4);
+  background: #2563eb;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
 }
 
-/* BOTÓN ESCRIBIR RESEÑA */
+
+.add-to-cart:active {
+  transform: translateY(0);
+}
+
+.add-to-cart i {
+  font-size: 1.1rem;
+  transition: transform 0.3s ease;
+}
+
+.add-to-cart:hover i {
+  transform: translateX(3px) scale(1.1);
+}
+
+/* Botón escribir reseña mejorado */
 .write-review {
-  background: linear-gradient(135deg, #42a5f5, #1976d2);
-  color: white;
-  border: none;
-  padding: 10px 16px;
+  flex: 1;
+  padding: 11px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #1e3a8a;
   border-radius: 8px;
+  font-size: 0.85rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(66,165,245,0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
+  transition: all 0.25s ease;
 }
 
 .write-review:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(66,165,245,0.4);
-  background: linear-gradient(135deg, #1976d2, #1565c0);
+  background: #e0f2fe;
+  border-color: #2563eb;
+}
+
+
+.write-review:hover i {
+  transform: rotate(180deg) scale(1.1);
 }
 
 .write-review:active {
   transform: translateY(0);
 }
 
-/* Efecto de línea pulsante */
-.write-review::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #ffffff, #e3f2fd, #ffffff);
-  animation: pulseLine 2s infinite;
+/* Responsive Design */
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 15px;
+    padding: 15px;
+  }
+
+  .product-image-container {
+    height: 220px;
+  }
+
+  .product-name {
+    font-size: 1.1rem;
+  }
+
+  .product-price {
+    font-size: 1.5rem;
+  }
+
+  .product-actions {
+    flex-direction: column;
+  }
+
+  .add-to-cart, .write-review {
+    width: 100%;
+  }
+
+  .favorite-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+    top: 10px;
+    right: 10px;
+  }
 }
 
-@keyframes pulseLine {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 1; }
-}
+/* Pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .product-image-container {
+    height: 200px;
+  }
 
-.write-review i {
-  font-size: 1rem;
-  color: #e3f2fd;
-}
+  .product-info {
+    padding: 15px;
+  }
 
-/* MENSAJE SIN PRODUCTOS */
-.no-products {
-  text-align: center;
-  padding: 40px;
-  color: #666;
-  font-size: 1.1rem;
+  .product-name {
+    font-size: 1rem;
+  }
+
+  .product-description {
+    font-size: 0.85rem;
+  }
 }
 
 /* RESPONSIVE */
@@ -407,6 +503,103 @@ export default {
   
   .product-card {
     padding: 15px;
+  }
+}
+.filters-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: white;
+  padding: 10px 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); /* Sombra muy sutil */
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  max-width: fit-content; /* Se ajusta al contenido */
+  margin-bottom: 30px; /* Espacio antes de la grilla */
+}
+
+/* Etiqueta "Filtros" */
+.filters-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #64748b; /* Gris azulado medio (Slate) */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Icono decorativo antes de la palabra Filtros (Opcional) */
+.filters-label::before {
+  content: ''; /* Podrías usar un icono de fontawesome aquí si tienes */
+  display: block;
+  width: 6px;
+  height: 6px;
+  background: #3b82f6; /* Azul brillante */
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* EL SELECT PERSONALIZADO */
+.filter-select {
+  /* 1. Resetear estilos nativos feos */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  
+  /* 2. Dimensiones y Texto */
+  padding: 10px 45px 10px 18px; /* Espacio extra a la derecha para la flecha */
+  font-size: 0.95rem;
+  font-family: 'Inter', sans-serif;
+  color: #1e293b; /* Texto oscuro pero no negro */
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #f8fafc; /* Fondo gris muy pálido */
+  
+  /* 3. Bordes */
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  
+  /* 4. La Magia: Flecha personalizada (SVG encoded) */
+  /* Esta es una flecha "Chevron Down" azul */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 16px;
+  
+  /* 5. Transiciones suaves */
+  transition: all 0.3s ease;
+}
+
+/* Estado Hover (Pasar el mouse) */
+.filter-select:hover {
+  background-color: #fff;
+  border-color: #3b82f6; /* El borde se pone azul */
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1); /* Brillo azul suave */
+}
+
+/* Estado Focus (Cuando haces clic) */
+.filter-select:focus {
+  outline: none;
+  background-color: #fff;
+  border-color: #2563eb;
+  /* Anillo de enfoque azul estilo moderno */
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); 
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .filters-section {
+    width: 100%;
+    max-width: 100%;
+    flex-direction: column; /* Apilar en vertical */
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .filter-select {
+    width: 100%; /* Ocupar todo el ancho en móvil */
   }
 }
 </style>

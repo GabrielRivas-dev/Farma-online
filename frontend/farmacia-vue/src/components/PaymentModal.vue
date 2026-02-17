@@ -410,7 +410,7 @@ export default {
 }
 
 .modal-header {
-  background: linear-gradient(135deg, #2c5aa0, #1e3a8a);
+   background: linear-gradient(135deg, #2b6ed1, #1e3a8a);
   color: white;
   padding: 1.5rem;
   display: flex;
@@ -422,6 +422,7 @@ export default {
 .modal-header h2 {
   margin: 0;
   font-size: 1.3rem;
+  color: white;
 }
 
 .close-btn {
