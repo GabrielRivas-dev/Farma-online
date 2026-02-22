@@ -1,5 +1,5 @@
 <template>
-  <div class="modal" @click="$emit('close')">
+  <div class="modal">
     <div class="modal-content" @click.stop>
       <div class="modal-header">
         <h2>Iniciar Sesión</h2>
@@ -9,17 +9,24 @@
         <form @submit.prevent="handleLogin">
           <div class="form-group">
             <label for="email">Email:</label>
-            <input type="email" id="email" v-model="form.email" required placeholder="tu@email.com">
+            <input type="email" 
+  id="email" 
+  v-model.trim="form.email"
+  required
+  autocomplete="email"
+  placeholder="tu@email.com">
           </div>
           <div class="form-group password-group">
             <label for="password">Contraseña:</label>
             <div class="password-input-container">
               <input 
-                :type="showPassword ? 'text' : 'password'" 
-                id="password" 
-                v-model="form.password" 
-                required 
-                placeholder="••••••••"
+             :type="showPassword ? 'text' : 'password'"
+  id="password"
+  v-model.trim="form.password"
+  required
+  minlength="6"
+  autocomplete="current-password"
+  placeholder="••••••••"
               >
               <button 
                 type="button" 
@@ -75,33 +82,62 @@ export default {
     }
   },
   methods: {
-    async handleLogin() {
-      this.loading = true;
-      this.error = '';
-      
-      try {
-        // ✅ USAR SERVICIO REAL DE AUTENTICACIÓN
-        const response = await authService.login(this.form);
-        
-        // ✅ CORREGIDO: Enviar TODA la respuesta, no solo el user
-        this.$emit('login', response);
-        
-        // Cerrar modal automáticamente
-        this.$emit('close');
-        
-      } catch (error) {
-        console.error('Error en login:', error);
-        this.error = error.message || 'Credenciales incorrectas. Intenta nuevamente.';
-      } finally {
-        this.loading = false;
-      }
-    },
-    
-    // MÉTODO NUEVO PARA RECUPERACIÓN DE CONTRASEÑA
-    showForgotPassword() {
-      this.$emit('show-forgot-password');
+    validateForm() {
+    // Limpiar error previo
+    this.error = '';
+
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!this.form.email) {
+      this.error = 'El email es obligatorio.';
+      return false;
     }
+
+    if (!emailRegex.test(this.form.email)) {
+      this.error = 'Ingresa un email válido.';
+      return false;
+    }
+
+    // Validar contraseña
+    if (!this.form.password) {
+      this.error = 'La contraseña es obligatoria.';
+      return false;
+    }
+
+    if (this.form.password.length < 6) {
+      this.error = 'La contraseña debe tener al menos 6 caracteres.';
+      return false;
+    }
+
+    return true;
+  },
+
+  async handleLogin() {
+    // 🔥 VALIDAR ANTES DE ENVIAR
+    if (!this.validateForm()) return;
+
+    this.loading = true;
+    this.error = '';
+
+    try {
+      const response = await authService.login(this.form);
+
+      this.$emit('login', response);
+      this.$emit('close');
+
+    } catch (error) {
+      console.error('Error en login:', error);
+      this.error = error.message || 'Credenciales incorrectas.';
+    } finally {
+      this.loading = false;
+    }
+  },
+
+  showForgotPassword() {
+    this.$emit('show-forgot-password');
   }
+}
 }
 </script>
 
@@ -146,19 +182,25 @@ export default {
 }
 
 .close-btn {
-  background: rgba(255,255,255,0.2);
+  background: none;
   border: none;
   color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
+  font-size: 1.8rem;
   cursor: pointer;
-  font-size: 1.2em;
-  transition: background 0.3s;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.3s;
 }
 
 .close-btn:hover {
-  background: rgba(255,255,255,0.3);
+  background-color: rgba(255, 255, 255, 0.2);
 }
+
 
 .modal-body {
   padding: 30px;

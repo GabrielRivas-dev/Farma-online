@@ -155,7 +155,7 @@ export default {
 .modal-container {
   background: white;
   border-radius: 16px;
-  width: 90%;
+  width: 100%;
   max-width: 500px;
   max-height: 80vh;
   display: flex;
@@ -248,6 +248,7 @@ export default {
   padding: 20px;
   overflow-y: auto;
   flex: 1;
+  width: 100%;
 }
 
 /* Estilos específicos del formulario */

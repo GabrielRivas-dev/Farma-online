@@ -1,5 +1,5 @@
 <template>
-  <div class="modal" v-if="show" @click="$emit('close')">
+  <div class="modal">
     <div class="modal-content payment-modal" @click.stop>
       <div class="modal-header">
         <h2>Proceso de Pago</h2>
@@ -29,10 +29,14 @@
         <!-- Paso 2: Información de Envío -->
         <div v-if="step === 2" class="payment-step">
           <h3>Información de Envío</h3>
-          <form @submit.prevent="$emit('go-to-payment', shippingInfo)">
+          <form @submit.prevent="handleShipping">
             <div class="form-group">
               <label for="fullName">Nombre Completo:</label>
-              <input type="text" id="fullName" v-model="shippingInfo.fullName" required>
+              <input  type="text" 
+  id="fullName" 
+  v-model="shippingInfo.fullName"
+  @input="shippingInfo.fullName = shippingInfo.fullName.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+  required>
             </div>
             <div class="form-group">
               <label for="address">Dirección:</label>
@@ -40,11 +44,19 @@
             </div>
             <div class="form-group">
               <label for="city">Ciudad:</label>
-              <input type="text" id="city" v-model="shippingInfo.city" required>
+              <input type="text" 
+  id="city" 
+  v-model="shippingInfo.city"
+  @input="shippingInfo.city = shippingInfo.city.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+  required>
             </div>
             <div class="form-group">
               <label for="phone">Teléfono:</label>
-              <input type="tel" id="phone" v-model="shippingInfo.phone" required>
+              <input  type="tel" 
+  id="phone" 
+  v-model="shippingInfo.phone"
+  @input="shippingInfo.phone = shippingInfo.phone.replace(/[^0-9]/g, '').slice(0,11)"
+  required>
             </div>
             <div class="step-actions">
               <button type="button" class="btn btn-outline" @click="$emit('prev-step')">Atrás</button>
@@ -75,7 +87,10 @@
           <div v-if="paymentInfo.method === 'pago_movil'" class="payment-details">
             <div class="form-group">
               <label for="phoneNumber">Número de Teléfono:</label>
-              <input type="tel" id="phoneNumber" v-model="paymentInfo.phoneNumber" placeholder="0412-1234567" required>
+              <input   type="tel"
+  v-model="paymentInfo.phoneNumber"
+  @input="paymentInfo.phoneNumber = paymentInfo.phoneNumber.replace(/[^0-9]/g, '').slice(0,11)"
+  required>
             </div>
             <div class="form-group">
               <label for="bank">Banco:</label>
@@ -90,7 +105,10 @@
             </div>
             <div class="form-group">
               <label for="reference">Número de Referencia:</label>
-              <input type="text" id="reference" v-model="paymentInfo.reference" placeholder="Ej: 123456" required>
+              <input  type="text"
+  v-model="paymentInfo.reference"
+  @input="paymentInfo.reference = paymentInfo.reference.replace(/[^0-9]/g, '')"
+  required>
             </div>
             <div class="payment-instructions">
               <p><strong>Instrucciones:</strong></p>
@@ -245,18 +263,50 @@ export default {
     }
   },
   computed: {
-  canProceedToPayment() {
-    if (!this.paymentInfo.method) return false;
-    
-    // ✅ SOLO VALIDACIONES PARA PAGO MÓVIL
-    if (this.paymentInfo.method === 'pago_movil') {
-      return this.paymentInfo.phoneNumber && this.paymentInfo.bank && this.paymentInfo.reference;
-    }
-    // Efectivo no requiere validaciones adicionales
-    return true;
+canProceedToPayment() {
+  if (!this.paymentInfo.method) return false;
+
+  if (this.paymentInfo.method === 'pago_movil') {
+
+    const phoneValid = /^[0-9]{11}$/.test(this.paymentInfo.phoneNumber);
+    const referenceValid = /^[0-9]{6,12}$/.test(this.paymentInfo.reference);
+
+    return (
+      phoneValid &&
+      this.paymentInfo.bank &&
+      referenceValid
+    );
   }
+
+  return true;
+}
 },
   methods: {
+    validateShipping() {
+  if (!this.shippingInfo.fullName.trim()) {
+    this.error = 'El nombre es obligatorio';
+    return false;
+  }
+
+  if (this.shippingInfo.phone.length !== 11) {
+    this.error = 'El teléfono debe tener 11 dígitos';
+    return false;
+  }
+
+  if (!this.shippingInfo.address.trim()) {
+    this.error = 'La dirección es obligatoria';
+    return false;
+  }
+
+  return true;
+},
+handleShipping() {
+  this.error = '';
+
+  if (!this.validateShipping()) return;
+
+  this.$emit('go-to-payment', this.shippingInfo);
+},
     getMethodName(methodCode) {
       const names = {
         'pago_movil': 'Pago Móvil',
@@ -269,10 +319,15 @@ export default {
     },
 
     async processRealPayment() {
+      
       if (!this.canProceedToPayment) {
         this.error = 'Por favor completa la información del pago';
         return;
       }
+      if (!this.validateShipping()) {
+  this.error = 'Datos de envío inválidos';
+  return;
+}
 
       this.processing = true;
       this.error = '';

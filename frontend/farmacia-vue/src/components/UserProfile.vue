@@ -120,6 +120,7 @@ export default {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
+   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -141,11 +142,12 @@ export default {
 }
 
 .profile-header {
-  background: linear-gradient(135deg, #2c5aa0, #1e3a8a);
+ background: linear-gradient(135deg, #1e88e5, #1565c0);
   color: white;
   padding: 1rem 1.5rem;
   display: flex;
   justify-content: space-between;
+  border-radius: 12px 12px 0 0;
   align-items: center;
   flex-shrink: 0;
 }

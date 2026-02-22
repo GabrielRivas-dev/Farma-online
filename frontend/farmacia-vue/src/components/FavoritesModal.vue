@@ -143,7 +143,7 @@ export default {
   border-radius: 16px;
   width: 85%;
   max-width: 500px; /* Más compacto */
-  max-height: 70vh; /* Menos alto */
+  max-height: 80vh; /* Menos alto */
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
@@ -201,13 +201,16 @@ export default {
 }
 
 .modal-title {
+  color: white;
   margin: 0;
   font-size: 1.3rem;
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 8px;
+margin-left: 2rem;
 }
+
 
 .modal-title i {
   color: #ff4081;
@@ -227,6 +230,7 @@ export default {
   overflow-y: auto;
   flex: 1;
   background: #f8f9fa;
+  width: 100%;
 }
 
 /* ITEMS MEJORADOS */

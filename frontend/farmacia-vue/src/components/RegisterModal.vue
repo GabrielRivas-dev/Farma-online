@@ -1,5 +1,5 @@
 <template>
-  <div class="modal" @click="$emit('close')">
+  <div class="modal">
     <div class="modal-content" @click.stop>
       <div class="modal-header">
         <h2>Crear Cuenta</h2>
@@ -129,27 +129,97 @@ export default {
     }
   },
   methods: {
+  validateForm() {
+  this.error = '';
+
+  // Nombre
+  if (!this.form.name.trim()) {
+    this.error = 'El nombre completo es obligatorio.';
+    return false;
+  }
+
+  if (this.form.name.trim().length < 3) {
+    this.error = 'El nombre debe tener al menos 3 caracteres.';
+    return false;
+  }
+   if (this.form.name.trim().length > 50) {
+    this.error = 'El nombre excedio el maximo de caracteres.';
+    return false;
+  }
+
+  // Email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!this.form.email.trim()) {
+    this.error = 'El email es obligatorio.';
+    return false;
+  }
+
+  if (!emailRegex.test(this.form.email)) {
+    this.error = 'Ingresa un email válido.';
+    return false;
+  }
+
+  // Dirección
+  if (!this.form.direccion.trim()) {
+    this.error = 'La dirección es obligatoria.';
+    return false;
+  }
+
+  if (this.form.direccion.trim().length < 5) {
+    this.error = 'Ingresa una dirección válida.';
+    return false;
+  }
+  if (this.form.direccion.trim().length > 50) {
+    this.error = 'Ingresa una dirección válida.';
+    return false;
+  }
+
+  // Teléfono
+  const phoneRegex = /^[0-9]{8,15}$/;
+
+  if (!this.form.telefono) {
+    this.error = 'El teléfono es obligatorio.';
+    return false;
+  }
+
+  if (!phoneRegex.test(this.form.telefono)) {
+    this.error = 'El teléfono debe tener entre 8 y 15 dígitos.';
+    return false;
+  }
+
+  // Contraseña
+  if (!this.form.password) {
+    this.error = 'La contraseña es obligatoria.';
+    return false;
+  }
+
+  if (this.form.password.length < 6) {
+    this.error = 'La contraseña debe tener al menos 6 caracteres.';
+    return false;
+  }
+  if (this.form.password.length > 16) {
+    this.error = 'La contraseña debe tener maximo 16 caracteres.';
+    return false;
+  }
+
+  // Confirmación
+  if (this.form.password !== this.form.confirmPassword) {
+    this.error = 'Las contraseñas no coinciden.';
+    return false;
+  }
+
+  return true;
+},
     async handleRegister() {
-      // ✅ PREVENIR DOBLE ENVÍO
-      if (this.loading) {
-        console.log('⏳ Registro ya en proceso...');
-        return;
-      }
-      
-      // Validaciones frontend
-      if (this.form.password !== this.form.confirmPassword) {
-        this.error = 'Las contraseñas no coinciden';
-        return;
-      }
-      
-      if (this.form.password.length < 6) {
-        this.error = 'La contraseña debe tener al menos 6 caracteres';
-        return;
-      }
-      
-      this.loading = true;
-      this.error = '';
-      this.success = '';
+   if (this.loading) return;
+
+  // 🔥 VALIDAR ANTES DE ENVIAR
+  if (!this.validateForm()) return;
+
+  this.loading = true;
+  this.error = '';
+  this.success = '';
       
       try {
         // ✅ DEBUG: Ver datos que se envían

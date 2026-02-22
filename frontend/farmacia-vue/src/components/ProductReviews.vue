@@ -179,7 +179,7 @@ export default {
   background: white;
   border-radius: 16px;
   width: 90%;
-  max-width: 600px;
+  max-width: 500px;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
@@ -217,6 +217,7 @@ export default {
 }
 
 .modal-title {
+  color: white;
   margin: 0;
   font-size: 1.3rem;
   display: flex;
@@ -254,6 +255,7 @@ export default {
   padding: 20px;
   overflow-y: auto;
   flex: 1;
+  width: 100%;
 }
 
 /* Estilos específicos de reseñas */
